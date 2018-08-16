@@ -515,7 +515,8 @@ def main():
                     # update magic mirror also
                     pass
                 say("Performing update and restarting assistant")
-                subprocess.Popen(["sudo systemctl stop gassistpi-ok-google && git -C /home/pi/GassistPi pull"], stdin=subprocess.PIPE,
+                subprocess.Popen(["sudo systemctl stop gassistpi-ok-google && git -C /home/pi/GassistPi pull "
+                                  "&& sudo systemctl start gassistpi-ok-google"], stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 

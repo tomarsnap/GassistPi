@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 
 # Copyright (C) 2017 Google Inc.
 #
@@ -514,7 +515,7 @@ def main():
                 if 'magic mirror'.lower() in str(usrcmd).lower():
                     # update magic mirror also
                     pass
-                say("Performing update and restarting assistant")
+                say("Päivitetään", "fi")
                 subprocess.Popen(["sudo systemctl stop gassistpi-ok-google && git -C /home/pi/GassistPi pull "
                                   "&& sudo systemctl start gassistpi-ok-google"], stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)

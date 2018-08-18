@@ -177,10 +177,12 @@ def kickstrater_search(query):
     return res
 
 
-
 #Text to speech converter with translation
-def say(words):
-    words= translator.translate(words, dest=language)
+def say(words, altlang = None):
+    if altlang:
+        words= translator.translate(words, dest=altlang)
+    else:
+        words = translator.translate(words, dest=language)
     words=words.text
     words=words.replace("Text, ",'',1)
     words=words.strip()

@@ -33,17 +33,10 @@ from google.assistant.library.file_helpers import existing_file
 from google.assistant.library.device_helpers import register_device
 from actions import say
 from actions import Action
-from actions import YouTube_No_Autoplay
-from actions import YouTube_Autoplay
-from actions import stop
-from actions import radio
 from actions import ESP
 from actions import track
 from actions import feed
 import requests
-from actions import kodiactions
-from actions import gmusicselect
-from actions import refreshlists
 from actions import kickstarter_tracker
 from actions import getrecipe
 from actions import hue_control
@@ -334,17 +327,6 @@ def main():
             if 'trigger'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 Action(str(usrcmd).lower())
-            if 'stream'.lower() in str(usrcmd).lower():
-                assistant.stop_conversation()
-                if 'autoplay'.lower() in str(usrcmd).lower():
-                    YouTube_Autoplay(str(usrcmd).lower())
-                else:
-                    YouTube_No_Autoplay(str(usrcmd).lower())
-            if 'stop'.lower() in str(usrcmd).lower():
-                stop()
-            if 'radio'.lower() in str(usrcmd).lower():
-                assistant.stop_conversation()
-                radio(str(usrcmd).lower())
             if 'wireless'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 ESP(str(usrcmd).lower())
@@ -354,12 +336,6 @@ def main():
             if 'news'.lower() in str(usrcmd).lower() or 'feed'.lower() in str(usrcmd).lower() or 'quote'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 feed(str(usrcmd).lower())
-            if 'refresh'.lower() in str(usrcmd).lower() and 'music'.lower() in str(usrcmd).lower():
-                assistant.stop_conversation()
-                refreshlists()
-            if 'google music'.lower() in str(usrcmd).lower():
-                assistant.stop_conversation()
-                gmusicselect(str(usrcmd).lower())
             if 'update'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 if 'magic mirror'.lower() in str(usrcmd).lower():

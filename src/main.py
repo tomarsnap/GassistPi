@@ -16,7 +16,6 @@
 # limitations under the License.
 
 from __future__ import print_function
-from kodijson import Kodi, PLAYER_VIDEO
 import RPi.GPIO as GPIO
 import argparse
 import json
@@ -43,16 +42,11 @@ from actions import track
 from actions import feed
 import requests
 from actions import kodiactions
-from actions import mutevolstatus
 from actions import gmusicselect
 from actions import refreshlists
-from actions import chromecast_play_video
-from actions import chromecast_control
 from actions import kickstarter_tracker
 from actions import getrecipe
 from actions import hue_control
-from actions import vlcplayer
-from actions import spotify_playlist_select
 from actions import configuration
 
 try:
@@ -72,17 +66,6 @@ WARNING_NOT_REGISTERED = """
 logging.basicConfig(filename='/tmp/GassistPi.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(name)s %(message)s')
 logger=logging.getLogger(__name__)
-
-
-
-#Login with default kodi/kodi credentials
-#kodi = Kodi("http://localhost:8080/jsonrpc")
-
-#Login with custom credentials
-# Kodi("http://IP-ADDRESS-OF-KODI:8080/jsonrpc", "username", "password")
-kodiurl=("http://"+str(configuration['Kodi']['ip'])+":"+str(configuration['Kodi']['port'])+"/jsonrpc")
-kodi = Kodi(kodiurl, configuration['Kodi']['username'], configuration['Kodi']['password'])
-
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -106,16 +89,6 @@ tasmota_deviceip=configuration['Tasmota_devicelist']['ipaddresses']
 
 #Magic Mirror Remote Control Declarations
 mmmip=configuration['Mmmip']
-
-# CHeck if VLC is paused
-def checkvlcpaused():
-    state=vlcplayer.state()
-    if str(state)=="State.Paused":
-        currentstate=True
-    else:
-        currentstate=False
-    return currentstate
-
 
 
 #Function to control Sonoff Tasmota Devices
@@ -162,15 +135,6 @@ def process_event(event):
         #kodi.Application.SetVolume({"volume": 0})
         GPIO.output(5,GPIO.HIGH)
         led.ChangeDutyCycle(100)
-        if vlcplayer.is_vlc_playing():
-            if os.path.isfile("/home/pi/.mediavolume.json"):
-                vlcplayer.set_vlc_volume(15)
-            else:
-                currentvolume=vlcplayer.get_vlc_volume()
-                print(currentvolume)
-                with open('/home/pi/.mediavolume.json', 'w') as vol:
-                   json.dump(currentvolume, vol)
-                vlcplayer.set_vlc_volume(15)
         print()
 
 
@@ -179,15 +143,6 @@ def process_event(event):
       GPIO.output(5,GPIO.LOW)
       GPIO.output(6,GPIO.LOW)
       led.ChangeDutyCycle(0)
-        #Uncomment the following after starting the Kodi
-        #with open('/home/pi/.volume.json', 'r') as f:
-               #vollevel = json.load(f)
-               #kodi.Application.SetVolume({"volume": vollevel})
-      if vlcplayer.is_vlc_playing():
-          with open('/home/pi/.mediavolume.json', 'r') as vol:
-              oldvolume = json.load(vol)
-          vlcplayer.set_vlc_volume(int(oldvolume))
-
 
     if (event.type == EventType.ON_RESPONDING_STARTED and event.args and not event.args['is_error_response']):
        GPIO.output(5,GPIO.LOW)
@@ -211,16 +166,6 @@ def process_event(event):
         GPIO.output(5,GPIO.LOW)
         GPIO.output(6,GPIO.LOW)
         led.ChangeDutyCycle(0)
-        #Uncomment the following after starting the Kodi
-        #with open('/home/pi/.volume.json', 'r') as f:
-               #vollevel = json.load(f)
-               #kodi.Application.SetVolume({"volume": vollevel})
-        if vlcplayer.is_vlc_playing():
-            with open('/home/pi/.mediavolume.json', 'r') as vol:
-                oldvolume= json.load(vol)
-            vlcplayer.set_vlc_volume(int(oldvolume))
-
-
         print()
 
     if event.type == EventType.ON_DEVICE_ACTION:
@@ -342,7 +287,7 @@ def main():
                         assistant.stop_conversation()
                         hue_control(str(usrcmd).lower(),str(i),str(hueconfig['lights_address'][str(i)]['ip']))
                         break
-                except Keyerror:
+                except KeyError:
                     say('Unable to help, please check your config file')
 
             for num, name in enumerate(tasmota_devicelist):
@@ -391,7 +336,6 @@ def main():
                 Action(str(usrcmd).lower())
             if 'stream'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
-                vlcplayer.stop_vlc()
                 if 'autoplay'.lower() in str(usrcmd).lower():
                     YouTube_Autoplay(str(usrcmd).lower())
                 else:
@@ -410,97 +354,14 @@ def main():
             if 'news'.lower() in str(usrcmd).lower() or 'feed'.lower() in str(usrcmd).lower() or 'quote'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 feed(str(usrcmd).lower())
-            if 'on kodi'.lower() in str(usrcmd).lower():
-                assistant.stop_conversation()
-                kodiactions(str(usrcmd).lower())
-            if 'pause music'.lower() in str(usrcmd).lower() or 'resume music'.lower() in str(usrcmd).lower():
-                assistant.stop_conversation()
-                if vlcplayer.is_vlc_playing():
-                    if 'pause music'.lower() in str(usrcmd).lower():
-                        vlcplayer.pause_vlc()
-                if checkvlcpaused():
-                    if 'resume music'.lower() in str(usrcmd).lower():
-                        vlcplayer.play_vlc()
-                elif vlcplayer.is_vlc_playing()==False and checkvlcpaused()==False:
-                    say("Sorry nothing is playing right now")
-            if 'music volume'.lower() in str(usrcmd).lower():
-                assistant.stop_conversation()
-                if vlcplayer.is_vlc_playing()==True or checkvlcpaused()==True:
-                    if 'set'.lower() in str(usrcmd).lower() or 'change'.lower() in str(usrcmd).lower():
-                        if 'hundred'.lower() in str(usrcmd).lower() or 'maximum' in str(usrcmd).lower():
-                            settingvollevel=100
-                            with open('/home/pi/.mediavolume.json', 'w') as vol:
-                                json.dump(settingvollevel, vol)
-                        elif 'zero'.lower() in str(usrcmd).lower() or 'minimum' in str(usrcmd).lower():
-                            settingvollevel=0
-                            with open('/home/pi/.mediavolume.json', 'w') as vol:
-                                json.dump(settingvollevel, vol)
-                        else:
-                            for settingvollevel in re.findall(r"[-+]?\d*\.\d+|\d+", str(usrcmd)):
-                                with open('/home/pi/.mediavolume.json', 'w') as vol:
-                                    json.dump(settingvollevel, vol)
-                        print('Setting volume to: '+str(settingvollevel))
-                        vlcplayer.set_vlc_volume(int(settingvollevel))
-                    elif 'increase'.lower() in str(usrcmd).lower() or 'decrease'.lower() in str(usrcmd).lower() or 'reduce'.lower() in str(usrcmd).lower():
-                        if os.path.isfile("/home/pi/.mediavolume.json"):
-                            with open('/home/pi/.mediavolume.json', 'r') as vol:
-                                oldvollevel = json.load(vol)
-                                for oldvollevel in re.findall(r'\b\d+\b', str(oldvollevel)):
-                                    oldvollevel=int(oldvollevel)
-                        else:
-                            oldvollevel=vlcplayer.get_vlc_volume
-                            for oldvollevel in re.findall(r"[-+]?\d*\.\d+|\d+", str(output)):
-                                oldvollevel=int(oldvollevel)
-                        if 'increase'.lower() in str(usrcmd).lower():
-                            if any(char.isdigit() for char in str(usrcmd)):
-                                for changevollevel in re.findall(r'\b\d+\b', str(usrcmd)):
-                                    changevollevel=int(changevollevel)
-                            else:
-                                changevollevel=10
-                            newvollevel= oldvollevel+ changevollevel
-                            print(newvollevel)
-                            if int(newvollevel)>100:
-                                settingvollevel==100
-                            elif int(newvollevel)<0:
-                                settingvollevel==0
-                            else:
-                                settingvollevel=newvollevel
-                            with open('/home/pi/.mediavolume.json', 'w') as vol:
-                                json.dump(settingvollevel, vol)
-                            print('Setting volume to: '+str(settingvollevel))
-                            vlcplayer.set_vlc_volume(int(settingvollevel))
-                        if 'decrease'.lower() in str(usrcmd).lower() or 'reduce'.lower() in str(usrcmd).lower():
-                            if any(char.isdigit() for char in str(usrcmd)):
-                                for changevollevel in re.findall(r'\b\d+\b', str(usrcmd)):
-                                    changevollevel=int(changevollevel)
-                            else:
-                                changevollevel=10
-                            newvollevel= oldvollevel - changevollevel
-                            print(newvollevel)
-                            if int(newvollevel)>100:
-                                settingvollevel==100
-                            elif int(newvollevel)<0:
-                                settingvollevel==0
-                            else:
-                                settingvollevel=newvollevel
-                            with open('/home/pi/.mediavolume.json', 'w') as vol:
-                                json.dump(settingvollevel, vol)
-                            print('Setting volume to: '+str(settingvollevel))
-                            vlcplayer.set_vlc_volume(int(settingvollevel))
-                    else:
-                        say("Sorry I could not help you")
-                else:
-                    say("Sorry nothing is playing right now")
             if 'refresh'.lower() in str(usrcmd).lower() and 'music'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 refreshlists()
             if 'google music'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
-                vlcplayer.stop_vlc()
                 gmusicselect(str(usrcmd).lower())
             if 'update'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
-                vlcplayer.stop_vlc()
                 if 'magic mirror'.lower() in str(usrcmd).lower():
                     # update magic mirror also
                     pass

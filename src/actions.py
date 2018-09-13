@@ -187,6 +187,10 @@ def say(words, altlang = None):
     words=words.replace("Text, ",'',1)
     words=words.strip()
     print(words)
+    if altlang:
+        tts = gTTS(text=words, lang=altlang)
+    else:
+        tts = gTTS(text=words, lang=language)
     tts = gTTS(text=words, lang=language)
     tts.save(ttsfilename)
     os.system("mpg123 "+ttsfilename)

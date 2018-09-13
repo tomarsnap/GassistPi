@@ -413,13 +413,6 @@ def main():
             if 'on kodi'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 kodiactions(str(usrcmd).lower())
-            # Google Assistant now comes built in with chromecast control, so custom function has been commented
-            # if 'chromecast'.lower() in str(usrcmd).lower():
-            #     assistant.stop_conversation()
-            #     if 'play'.lower() in str(usrcmd).lower():
-            #         chromecast_play_video(str(usrcmd).lower())
-            #     else:
-            #         chromecast_control(usrcmd)
             if 'pause music'.lower() in str(usrcmd).lower() or 'resume music'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 if vlcplayer.is_vlc_playing():
@@ -505,10 +498,6 @@ def main():
                 assistant.stop_conversation()
                 vlcplayer.stop_vlc()
                 gmusicselect(str(usrcmd).lower())
-            if 'spotify'.lower() in str(usrcmd).lower():
-                assistant.stop_conversation()
-                vlcplayer.stop_vlc()
-                spotify_playlist_select(str(usrcmd).lower())
             if 'update'.lower() in str(usrcmd).lower():
                 assistant.stop_conversation()
                 vlcplayer.stop_vlc()
